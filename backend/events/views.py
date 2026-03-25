@@ -1,5 +1,6 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Event
 from .serializers import EventSerializer
@@ -15,8 +16,21 @@ def get_events(request):
 
 # CREATE event
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_event(request):
-    serializer = EventSerializer(data=request.data)
+    user = request.user
+
+    # Block non-organizers
+    if not user.is_organizer:
+        return Response(
+            {"error": "Only organizers can create events"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    data = request.data.copy()
+    data['organizer'] = user.id  # auto assign
+
+    serializer = EventSerializer(data=data)
 
     if serializer.is_valid():
         serializer.save()
