@@ -19,13 +19,13 @@ function Login() {
     })
       .then(res => res.json())
       .then(data => {
-        console.log(data);
-
         if (data.access) {
           localStorage.setItem("token", data.access);
+          localStorage.setItem("user", JSON.stringify(data.user));
+
           alert("Login successful 🎉");
         } else {
-          alert("Login failed 😢");
+          alert("Login failed 😢.. Try again later");
         }
       });
   }
