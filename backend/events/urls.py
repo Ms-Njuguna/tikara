@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import test_api
+from .views import get_events, create_event
 
 urlpatterns = [
-    path('test/', test_api),
+    path('', get_events),
+    path('create/', create_event),
 ]
