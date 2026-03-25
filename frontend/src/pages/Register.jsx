@@ -8,6 +8,12 @@ function Register() {
 
   function handleRegister(e) {
     e.preventDefault();
+    console.log({
+  username,
+  email,
+  password,
+  isOrganizer
+});
 
     fetch("http://127.0.0.1:8000/api/auth/register/", {
       method: "POST",
@@ -23,10 +29,10 @@ function Register() {
     })
       .then(res => res.json())
       .then(data => {
-        console.log(data);
+        console.log(data); // 👈 IMPORTANT
         alert("User registered successfully 🎉");
       });
-  }
+    }
 
   return (
     <div>
@@ -34,23 +40,25 @@ function Register() {
 
       <form onSubmit={handleRegister}>
         <input
-          type="text"
-          placeholder="Username"
-          onChange={(e) => setUsername(e.target.value)}
-        />
+  type="text"
+  placeholder="Username"
+  value={username}
+  onChange={(e) => setUsername(e.target.value)}
+/>
 
-        <input
-          type="email"
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
+<input
+  type="email"
+  placeholder="Email"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+/>
 
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
+<input
+  type="password"
+  placeholder="Password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+/>
         {/* NEW */}
         <label>
           <input
