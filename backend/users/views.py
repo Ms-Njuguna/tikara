@@ -27,9 +27,15 @@ def login_user(request):
 
     if user is not None:
         refresh = RefreshToken.for_user(user)
+
         return Response({
             "access": str(refresh.access_token),
             "refresh": str(refresh),
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "is_organizer": user.is_organizer
+            }
         })
 
-    return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response({"error": "Invalid credentials"}, status=401)
