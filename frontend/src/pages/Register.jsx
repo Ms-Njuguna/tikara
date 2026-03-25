@@ -4,6 +4,7 @@ function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isOrganizer, setIsOrganizer] = useState(false);
 
   function handleRegister(e) {
     e.preventDefault();
@@ -16,7 +17,8 @@ function Register() {
       body: JSON.stringify({
         username,
         email,
-        password
+        password,
+        is_organizer: isOrganizer
       })
     })
       .then(res => res.json())
@@ -48,6 +50,16 @@ function Register() {
           placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
         />
+
+        {/* NEW */}
+        <label>
+          <input
+            type="checkbox"
+            checked={isOrganizer}
+            onChange={(e) => setIsOrganizer(e.target.checked)}
+          />
+          Register as Organizer
+        </label>
 
         <button type="submit">Register</button>
       </form>
