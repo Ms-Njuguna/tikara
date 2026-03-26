@@ -58,3 +58,18 @@ def generate_qr(request, ticket_id):
     qr.save(response, "PNG")
 
     return response
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_ticket(request):
+    qr_code = request.data.get("qr_code")
+
+    try:
+        ticket = Ticket.objects.get(qr_code=qr_code)
+
+        return Response({
+            "message": f"Valid ticket for {ticket.event.title} 🎉"
+        })
+
+    except Ticket.DoesNotExist:
+        return Response({"error": "Invalid ticket ❌"}, status=400)
