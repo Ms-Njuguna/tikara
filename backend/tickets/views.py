@@ -67,9 +67,24 @@ def verify_ticket(request):
     try:
         ticket = Ticket.objects.get(qr_code=qr_code)
 
+        # ❌ already used
+        if ticket.is_used:
+            return Response({
+                "status": "warning",
+                "message": "Ticket already used ⚠️"
+            })
+
+        # ✅ mark as used
+        ticket.is_used = True
+        ticket.save()
+
         return Response({
-            "message": f"Valid ticket for {ticket.event.title} 🎉"
+            "status": "success",
+            "message": f"Welcome to {ticket.event.title} 🎉"
         })
 
     except Ticket.DoesNotExist:
-        return Response({"error": "Invalid ticket ❌"}, status=400)
+        return Response({
+            "status": "error",
+            "message": "Invalid ticket ❌"
+        }, status=400)
