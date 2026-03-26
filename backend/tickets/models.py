@@ -41,7 +41,7 @@ class Ticket(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
 
     ticket_type = models.ForeignKey(TicketType, on_delete=models.CASCADE)
-    qr_code = models.UUIDField(default=uuid.uuid4, editable=False)
+    qr_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     is_paid = models.BooleanField(default=False)
 
