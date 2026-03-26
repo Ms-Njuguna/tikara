@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from events.models import Event
+import uuid
 
 User = settings.AUTH_USER_MODEL
 
@@ -40,6 +41,7 @@ class Ticket(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
 
     ticket_type = models.ForeignKey(TicketType, on_delete=models.CASCADE)
+    qr_code = models.UUIDField(default=uuid.uuid4, editable=False)
 
     is_paid = models.BooleanField(default=False)
 
