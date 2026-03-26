@@ -25,27 +25,54 @@ function CreateEvent() {
   }
 
   function handleSubmit(e) {
-    e.preventDefault();
+        e.preventDefault();
 
-    fetch("http://127.0.0.1:8000/api/events/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-  title,
-  description,
-  date: new Date(date).toISOString(),
-  location,
-  event_type: eventType,
-  ticket_types: tickets
-})
-    })
-      .then(async res => {
+        // 🔥 CLEAN + FORMAT TICKETS BEFORE SENDING
+        const cleanedTickets = tickets.map(ticket => {
+          return {
+              name: ticket.name,
+              price: Number(ticket.price),
+              quantity: Number(ticket.quantity),
+
+              // ONLY include group_size if it's a group ticket
+              ...(ticket.name === "group" && {
+                 group_size: Number(ticket.group_size)
+                })
+            };
+        });
+
+        // 🔥 OPTIONAL VALIDATION (prevents dumb errors)
+        if (!title || !description || !date) {
+            alert("Please fill all event fields 😤");
+            return;
+        }
+
+        if (cleanedTickets.length === 0) {
+            alert("Add at least one ticket type 🎟️");
+            return;
+        }
+
+        const token = localStorage.getItem("token");
+
+        fetch("http://127.0.0.1:8000/api/events/create/", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+               Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+               title,
+               description,
+               date: new Date(date).toISOString(), // 🔥 FIXED DATE
+               location,
+               event_type: eventType,
+               ticket_types: cleanedTickets
+            })
+        })
+        .then(async res => {
             const data = await res.json();
 
-            console.log("RESPONSE:", data); // 🔥 VERY IMPORTANT
+            console.log("RESPONSE:", data);
 
             if (!res.ok) {
                 throw new Error(JSON.stringify(data));
@@ -53,14 +80,21 @@ function CreateEvent() {
 
             return data;
         })
-       .then(data => {
-            alert("Event created 🎉");
+        .then(data => {
+            alert("Event created 🎉🔥");
+
+           // 🔥 RESET FORM AFTER SUCCESS
+           setTitle("");
+           setDescription("");
+           setDate("");
+           setLocation("");
+           setTickets([]);
         })
-    .catch(err => {
-        console.error(err);
-        alert("Error creating event ❌");
-    });
-}
+        .catch(err => {
+           console.error(err);
+           alert("Error creating event ❌");
+        });
+    }
 
   return (
     <div>
