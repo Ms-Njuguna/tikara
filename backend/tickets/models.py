@@ -44,6 +44,7 @@ class Ticket(models.Model):
     qr_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     is_paid = models.BooleanField(default=False)
+    is_used = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
