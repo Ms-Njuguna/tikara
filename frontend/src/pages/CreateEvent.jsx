@@ -7,7 +7,22 @@ function CreateEvent() {
   const [location, setLocation] = useState("");
   const [eventType, setEventType] = useState("physical");
 
+  const [tickets, setTickets] = useState([]);
+
   const token = localStorage.getItem("token");
+
+  function addTicket() {
+    setTickets([
+      ...tickets,
+      { name: "regular", price: "", quantity: "", group_size: "" }
+    ]);
+  }
+
+  function updateTicket(index, field, value) {
+    const updated = [...tickets];
+    updated[index][field] = value;
+    setTickets(updated);
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -23,7 +38,8 @@ function CreateEvent() {
         description,
         date,
         location,
-        event_type: eventType
+        event_type: eventType,
+        ticket_types: tickets
       })
     })
       .then(res => res.json())
@@ -48,6 +64,43 @@ function CreateEvent() {
           <option value="virtual">Virtual</option>
           <option value="hybrid">Hybrid</option>
         </select>
+
+        <h3>Ticket Types 🎟️</h3>
+
+        {tickets.map((ticket, index) => (
+          <div key={index}>
+            <select onChange={e => updateTicket(index, "name", e.target.value)}>
+              <option value="regular">Regular</option>
+              <option value="vip">VIP</option>
+              <option value="vvip">VVIP</option>
+              <option value="earlybird">Earlybird</option>
+              <option value="group">Group</option>
+            </select>
+
+            <input
+              placeholder="Price"
+              onChange={e => updateTicket(index, "price", e.target.value)}
+            />
+
+            <input
+              placeholder="Quantity"
+              onChange={e => updateTicket(index, "quantity", e.target.value)}
+            />
+
+            {ticket.name === "group" && (
+              <input
+                placeholder="Group Size (4-10)"
+                onChange={e => updateTicket(index, "group_size", e.target.value)}
+              />
+            )}
+          </div>
+        ))}
+
+        <button type="button" onClick={addTicket}>
+          Add Ticket Type ➕
+        </button>
+
+        <br /><br />
 
         <button type="submit">Create Event 🚀</button>
       </form>
