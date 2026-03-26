@@ -28,3 +28,18 @@ def buy_ticket(request):
     )
 
     return Response({"message": "Ticket purchased 🎟️"})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_tickets(request):
+    tickets = Ticket.objects.filter(user=request.user)
+
+    data = []
+    for ticket in tickets:
+        data.append({
+            "event": ticket.event.title,
+            "ticket_type": ticket.ticket_type.name,
+            "qr_code": str(ticket.qr_code)
+        })
+
+    return Response(data)
