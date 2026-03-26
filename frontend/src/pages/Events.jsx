@@ -41,9 +41,23 @@ function Events() {
           <p>{event.description}</p>
           <p>{event.location}</p>
 
-          <button onClick={() => handleBuy(event.id)}>
-            Buy Ticket 🎟️
-          </button>
+          <h4>Tickets 🎟️</h4>
+
+          {event.ticket_types.map(ticket => (
+            <div key={ticket.id} style={{ marginBottom: "10px" }}>
+              <p>
+                {ticket.name.toUpperCase()} - KES {ticket.price}
+              </p>
+              <p>Remaining: {ticket.quantity}</p>
+
+              <button
+                disabled={ticket.quantity === 0}
+                onClick={() => handleBuy(ticket.id)}
+              >
+                {ticket.quantity === 0 ? "Sold Out ❌" : "Buy Ticket 🎟️"}
+              </button>
+            </div>
+          ))}
         </div>
       ))}
     </div>
