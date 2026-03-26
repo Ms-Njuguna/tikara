@@ -9,14 +9,22 @@ from .serializers import TicketSerializer
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def buy_ticket(request):
-    data = request.data.copy()
-    data['user'] = request.user.id
-    data['is_paid'] = True  # simulate payment for now
+    ticket_type_id = request.data.get("ticket_type")
 
-    serializer = TicketSerializer(data=data)
+    ticket_type = TicketType.objects.get(id=ticket_type_id)
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=201)
+    # check availability
+    if ticket_type.quantity <= 0:
+        return Response({"error": "Sold out"}, status=400)
 
-    return Response(serializer.errors, status=400)
+    ticket_type.quantity -= 1
+    ticket_type.save()
+
+    ticket = Ticket.objects.create(
+        user=request.user,
+        event=ticket_type.event,
+        ticket_type=ticket_type,
+        is_paid=True
+    )
+
+    return Response({"message": "Ticket purchased 🎟️"})

@@ -18,14 +18,17 @@ class TicketType(models.Model):
     name = models.CharField(max_length=20, choices=TICKET_TYPE_CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
-    quantity = models.IntegerField()  # total available
+    quantity = models.PositiveIntegerField()  # ✅ prevents negative values
 
-    # FOR GROUP TICKETS
-    group_size = models.IntegerField(blank=True, null=True)
+    group_size = models.PositiveIntegerField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        if self.name == 'group' and not self.group_size:
-            raise ValueError("Group tickets must have a group_size")
+        # 🔥 enforce group logic
+        if self.name == 'group':
+            if not self.group_size:
+                raise ValueError("Group tickets must have a group_size")
+            if self.group_size < 4 or self.group_size > 10:
+                raise ValueError("Group size must be between 4 and 10")
 
         super().save(*args, **kwargs)
 
