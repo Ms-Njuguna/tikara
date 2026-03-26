@@ -35,12 +35,18 @@ def create_event(request):
 
         for ticket in ticket_data:
             try:
+                group_size = ticket.get("group_size")
+
+                # 🔥 convert empty string to None
+                if group_size == "":
+                    group_size = None
+
                 ticket_obj = TicketType.objects.create(
                     event=event,
                     name=ticket["name"],
                     price=ticket["price"],
                     quantity=ticket["quantity"],
-                    group_size=ticket.get("group_size")
+                    group_size=group_size
                 )
                 created_tickets.append(ticket_obj.id)
             except Exception as e:
