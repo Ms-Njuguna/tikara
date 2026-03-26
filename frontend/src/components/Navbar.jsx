@@ -8,6 +8,7 @@ export default function Navbar() {
             <Link to="/">Events</Link> |{" "}
             <Link to="/login">Login</Link> |{" "}
             <Link to="/register">Register</Link> |{" "}
+            <Link to="/my-tickets">My Tickets</Link> |{" "}
             {user?.is_organizer && <Link to="/create-event">Create Event</Link>}
         </nav>
     )
