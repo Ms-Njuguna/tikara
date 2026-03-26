@@ -4,16 +4,25 @@ function MyTickets() {
   const [tickets, setTickets] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
-    fetch("http://127.0.0.1:8000/api/tickets/my/", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => setTickets(data));
-  }, []);
+        fetch("http://127.0.0.1:8000/api/tickets/my/", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+       })
+       .then(async res => {
+            if (!res.ok) {
+                const text = await res.text(); // catches HTML errors
+                throw new Error(text);
+            }
+            return res.json();
+        })
+       .then(data => setTickets(data))
+       .catch(err => {
+            console.error("ERROR:", err);
+        });
+    }, []);
 
   return (
     <div>
