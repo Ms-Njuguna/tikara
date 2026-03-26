@@ -39,6 +39,7 @@ def my_tickets(request):
     data = []
     for ticket in tickets:
         data.append({
+            "id": ticket.id,
             "event": ticket.event.title,
             "ticket_type": ticket.ticket_type.name,
             "qr_code": str(ticket.qr_code)
