@@ -3,16 +3,13 @@ import QrScanner from "react-qr-scanner";
 
 function ScanTicket() {
   const [result, setResult] = useState("");
+  const [status, setStatus] = useState("");
 
   function handleScan(data) {
     if (data) {
       setResult(data.text);
       verifyTicket(data.text);
     }
-  }
-
-  function handleError(err) {
-    console.error(err);
   }
 
   function verifyTicket(qrCode) {
@@ -28,7 +25,7 @@ function ScanTicket() {
     })
       .then(res => res.json())
       .then(data => {
-        alert(data.message || data.error);
+        setStatus(data.status);
       });
   }
 
@@ -38,12 +35,13 @@ function ScanTicket() {
 
       <QrScanner
         delay={300}
-        onError={handleError}
         onScan={handleScan}
         style={{ width: "300px" }}
       />
 
-      <p>Scanned: {result}</p>
+      {status === "success" && <p style={{ color: "green" }}>✅ Valid Entry</p>}
+      {status === "error" && <p style={{ color: "red" }}>❌ Invalid Ticket</p>}
+      {status === "warning" && <p style={{ color: "orange" }}>⚠️ Already Used</p>}
     </div>
   );
 }
