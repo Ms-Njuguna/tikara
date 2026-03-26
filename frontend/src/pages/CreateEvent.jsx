@@ -34,20 +34,33 @@ function CreateEvent() {
         Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
-        title,
-        description,
-        date,
-        location,
-        event_type: eventType,
-        ticket_types: tickets
-      })
+  title,
+  description,
+  date: new Date(date).toISOString(),
+  location,
+  event_type: eventType,
+  ticket_types: tickets
+})
     })
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-        alert("Event created 🎉");
-      });
-  }
+      .then(async res => {
+            const data = await res.json();
+
+            console.log("RESPONSE:", data); // 🔥 VERY IMPORTANT
+
+            if (!res.ok) {
+                throw new Error(JSON.stringify(data));
+            }
+
+            return data;
+        })
+       .then(data => {
+            alert("Event created 🎉");
+        })
+    .catch(err => {
+        console.error(err);
+        alert("Error creating event ❌");
+    });
+}
 
   return (
     <div>
