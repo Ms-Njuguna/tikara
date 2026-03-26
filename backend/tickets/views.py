@@ -1,3 +1,5 @@
+import qrcode
+from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -43,3 +45,15 @@ def my_tickets(request):
         })
 
     return Response(data)
+
+def generate_qr(request, ticket_id):
+    ticket = Ticket.objects.get(id=ticket_id)
+
+    qr_data = str(ticket.qr_code)
+
+    qr = qrcode.make(qr_data)
+
+    response = HttpResponse(content_type="image/png")
+    qr.save(response, "PNG")
+
+    return response
