@@ -11,7 +11,7 @@ function Events() {
 
   const token = localStorage.getItem("token");
 
-  function handleBuy(eventId) {
+  function handleBuy(ticketTypeId) {
     fetch("http://127.0.0.1:8000/api/tickets/buy/", {
       method: "POST",
       headers: {
@@ -19,16 +19,17 @@ function Events() {
         Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
-        event: eventId,
-        ticket_type: "regular",
-        price: 1000
+        ticket_type: ticketTypeId
       })
     })
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-        alert("Ticket purchased 🎟️🔥");
-      });
+    .then(res => res.json())
+    .then(data => {
+      console.log(data);
+      alert("Ticket purchased 🎟️🔥");
+
+      // 🔥 OPTIONAL: refresh page
+      window.location.reload();
+    });
   }
 
   return (
