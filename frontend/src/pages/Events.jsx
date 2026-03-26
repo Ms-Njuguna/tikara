@@ -9,14 +9,15 @@ function Events() {
       .then(data => setEvents(data));
   }, []);
 
-  const token = localStorage.getItem("token");
-
   function handleBuy(ticketTypeId) {
+    const token = localStorage.getItem("token");
+    console.log("TOKEN:", token);
+
     fetch("http://127.0.0.1:8000/api/tickets/buy/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}` // 🔥 THIS LINE IS KEY
       },
       body: JSON.stringify({
         ticket_type: ticketTypeId
@@ -25,10 +26,13 @@ function Events() {
     .then(res => res.json())
     .then(data => {
       console.log(data);
-      alert("Ticket purchased 🎟️🔥");
 
-      // 🔥 OPTIONAL: refresh page
-      window.location.reload();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Ticket purchased 🎟️🔥");
+        window.location.reload();
+      }
     });
   }
 
