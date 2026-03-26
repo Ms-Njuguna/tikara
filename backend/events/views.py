@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Event
 from .serializers import EventSerializer
+from tickets.models import TicketType
 
 
 # GET all events
@@ -20,20 +21,26 @@ def get_events(request):
 def create_event(request):
     user = request.user
 
-    # Block non-organizers
     if not user.is_organizer:
-        return Response(
-            {"error": "Only organizers can create events"},
-            status=status.HTTP_403_FORBIDDEN
-        )
+        return Response({"error": "Only organizers can create events"}, status=403)
 
-    data = request.data.copy()
-    data['organizer'] = user.id  # auto assign
+    ticket_data = request.data.pop("ticket_types", [])
 
-    serializer = EventSerializer(data=data)
+    event_serializer = EventSerializer(data=request.data)
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    if event_serializer.is_valid():
+        event = event_serializer.save(organizer=user)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # 🔥 CREATE TICKET TYPES
+        for ticket in ticket_data:
+            TicketType.objects.create(
+                event=event,
+                name=ticket["name"],
+                price=ticket["price"],
+                quantity=ticket["quantity"],
+                group_size=ticket.get("group_size")
+            )
+
+        return Response({"message": "Event + tickets created 🎉"}, status=201)
+
+    return Response(event_serializer.errors, status=400)

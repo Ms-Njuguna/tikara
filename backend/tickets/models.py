@@ -23,6 +23,12 @@ class TicketType(models.Model):
     # FOR GROUP TICKETS
     group_size = models.IntegerField(blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if self.name == 'group' and not self.group_size:
+            raise ValueError("Group tickets must have a group_size")
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.event} - {self.name}"
 
