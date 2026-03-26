@@ -32,7 +32,11 @@ function MyTickets() {
         <div key={i}>
           <h3>{ticket.event}</h3>
           <p>{ticket.ticket_type}</p>
-          <p>QR: {ticket.qr_code}</p>
+          <img
+              src={`http://127.0.0.1:8000/api/tickets/qr/${ticket.id}/`}
+              alt="QR Code"
+              width="150"
+           />
         </div>
       ))}
     </div>
