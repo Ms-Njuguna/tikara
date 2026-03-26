@@ -24,23 +24,35 @@ def create_event(request):
     if not user.is_organizer:
         return Response({"error": "Only organizers can create events"}, status=403)
 
-    ticket_data = request.data.pop("ticket_types", [])
+    ticket_data = request.data.get("ticket_types", [])
 
     event_serializer = EventSerializer(data=request.data)
 
     if event_serializer.is_valid():
         event = event_serializer.save(organizer=user)
 
-        # 🔥 CREATE TICKET TYPES
-        for ticket in ticket_data:
-            TicketType.objects.create(
-                event=event,
-                name=ticket["name"],
-                price=ticket["price"],
-                quantity=ticket["quantity"],
-                group_size=ticket.get("group_size")
-            )
+        created_tickets = []
 
-        return Response({"message": "Event + tickets created 🎉"}, status=201)
+        for ticket in ticket_data:
+            try:
+                ticket_obj = TicketType.objects.create(
+                    event=event,
+                    name=ticket["name"],
+                    price=ticket["price"],
+                    quantity=ticket["quantity"],
+                    group_size=ticket.get("group_size")
+                )
+                created_tickets.append(ticket_obj.id)
+            except Exception as e:
+                return Response(
+                    {"error": f"Ticket creation failed: {str(e)}"},
+                    status=400
+                )
+
+        return Response({
+            "message": "Event + tickets created 🎉",
+            "event_id": event.id,
+            "ticket_types": created_tickets
+        }, status=201)
 
     return Response(event_serializer.errors, status=400)
