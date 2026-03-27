@@ -11,6 +11,8 @@ function ScanTicket() {
   const successAudio = useRef(null);
   const errorAudio = useRef(null);
 
+  const [flash, setFlash] = useState("");
+
   function startScanner() {
     if (scannerRunning) return;
 
@@ -83,6 +85,14 @@ function ScanTicket() {
       successAudio.current?.play();
       navigator.vibrate?.([100, 50, 100]);
 
+      // SUCCESS
+      setFlash("success");
+      setTimeout(() => setFlash(""), 500);
+
+      // ERROR
+      setFlash("error");
+      setTimeout(() => setFlash(""), 500);
+
       setStatus(data.status);
     } catch (err) {
       console.error("Scan error:", err);
@@ -98,6 +108,23 @@ function ScanTicket() {
 
   return (
     <div>
+      {flash && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor:
+              flash === "success"
+              ? "rgba(0,255,0,0.3)"
+              : "rgba(255,0,0,0.3)",
+            zIndex: 9999,
+            pointerEvents: "none",
+          }}
+        />
+      )}
       <h2>Scan Ticket 🎟️</h2>
       <div id="reader" style={{ width: "300px", margin: "20px 0" }}></div>
       <button onClick={startScanner} disabled={scannerRunning}>Turn Camera On</button>
