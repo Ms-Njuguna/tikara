@@ -8,12 +8,6 @@ function Register() {
 
   function handleRegister(e) {
     e.preventDefault();
-    console.log({
-  username,
-  email,
-  password,
-  isOrganizer
-});
 
     fetch("http://127.0.0.1:8000/api/auth/register/", {
       method: "POST",
@@ -24,7 +18,7 @@ function Register() {
         username,
         email,
         password,
-        is_organizer: isOrganizer
+        role: isOrganizer ? "organizer" : "user"
       })
     })
       .then(res => res.json())
