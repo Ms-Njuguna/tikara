@@ -68,41 +68,39 @@ function ScanTicket() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          qr_code: scannedValue, // ✅ THIS MUST MATCH BACKEND FIELD
-        }),
+        body: JSON.stringify({ qr_code: scannedValue }),
       });
 
       const data = await res.json();
       console.log("RESPONSE:", data);
 
-      if (!res.ok) {
-        errorAudio.current?.play();
-        navigator.vibrate?.(300); // 🔥 vibration
-        throw new Error(data.detail || "Scan failed");
-      }
-
-      // SUCCESS
-      successAudio.current?.play();
-      navigator.vibrate?.([100, 50, 100]);
-
-      // SUCCESS
-      setFlash("success");
-      setTimeout(() => setFlash(""), 500);
-
-      // ERROR
-      setFlash("error");
-      setTimeout(() => setFlash(""), 500);
-
-      setUserName(data.user);
       setStatus(data.status);
+      setUserName(data.user);
 
-      setTimeout(() => {
-        startScanner();
-      }, 3000);
+      // 🔊 play sounds
+      if (data.status === "success") successAudio.current?.play();
+      if (data.status === "error" || data.status === "warning") errorAudio.current?.play();
+
+      // 🔥 flash overlay
+      if (data.status === "success") setFlash("success");
+      else if (data.status === "error") setFlash("error");
+      else if (data.status === "warning") setFlash("warning");
+
+      setTimeout(() => setFlash(""), 500);
+
+      // 🔥 Only restart scanner if ticket is NOT valid
+      if (data.status !== "success") {
+        setTimeout(() => {
+          hasScannedRef.current = false; // unlock
+          startScanner();
+        }, 3000);
+      }
     } catch (err) {
       console.error("Scan error:", err);
       setStatus("error");
+      setFlash("error");
+      setTimeout(() => setFlash(""), 500);
+      errorAudio.current?.play();
     }
   }
 
@@ -125,7 +123,9 @@ function ScanTicket() {
             backgroundColor:
               flash === "success"
               ? "rgba(0,255,0,0.3)"
-              : "rgba(255,0,0,0.3)",
+              : flash === "error"
+              ? "rgba(255,0,0,0.3)"
+              : "rgba(255,165,0,0.3)",
             zIndex: 9999,
             pointerEvents: "none",
           }}
