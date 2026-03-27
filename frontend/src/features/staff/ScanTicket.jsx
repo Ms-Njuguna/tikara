@@ -4,6 +4,7 @@ import { Html5Qrcode } from "html5-qrcode";
 
 function ScanTicket() {
   const [status, setStatus] = useState(""); // success / error / warning
+  const [userName, setUserName] = useState("");
   const [scannerRunning, setScannerRunning] = useState(false);
   const html5QrCodeRef = useRef(null);
 
@@ -93,6 +94,7 @@ function ScanTicket() {
       setFlash("error");
       setTimeout(() => setFlash(""), 500);
 
+      setUserName(data.user);
       setStatus(data.status);
     } catch (err) {
       console.error("Scan error:", err);
@@ -130,7 +132,12 @@ function ScanTicket() {
       <button onClick={startScanner} disabled={scannerRunning}>Turn Camera On</button>
       <button onClick={stopScanner} disabled={!scannerRunning} style={{ marginLeft: "10px" }}>Turn Camera Off</button>
       <div style={{ marginTop: "20px" }}>
-        {status === "success" && <p style={{ color: "green" }}>✅ Valid Entry</p>}
+        {status === "success" && (
+          <div style={{ color: "green" }}>
+            <p>✅ Valid Entry</p>
+            <p>Welcome, {userName} 🎉</p>
+          </div>
+        )}
         {status === "error" && <p style={{ color: "red" }}>❌ Invalid Ticket</p>}
         {status === "warning" && <p style={{ color: "orange" }}>⚠️ Already Used</p>}
       </div>
