@@ -97,7 +97,8 @@ def verify_ticket(request):
             ticket.save()
             return Response({
                 "status": "success",
-                "message": f"Welcome to {ticket.event.title} 🎉"
+                "message": f"Welcome to {ticket.event.title} 🎉",
+                "user": ticket.user.username
             })
 
         # ⚠️ Already used
