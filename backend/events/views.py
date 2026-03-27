@@ -21,7 +21,7 @@ def get_events(request):
 def create_event(request):
     user = request.user
 
-    if user.role != "organizer":
+    if request.user.role != "organizer":
         return Response({"error": "Only organizers can create events"}, status=403)
 
     ticket_data = request.data.get("ticket_types", [])
