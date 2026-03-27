@@ -14,52 +14,60 @@ function ScanTicket() {
 
   const [flash, setFlash] = useState("");
   const [nextScanEnabled, setNextScanEnabled] = useState(true);
+  const [quickQueueMode, setQuickQueueMode] = useState(false); // 🔥 new
 
-
+  // START SCANNER
   function startScanner() {
     if (scannerRunning) return;
 
-    hasScannedRef.current = false; // 🔥 reset lock
+    hasScannedRef.current = false;
 
-    if (html5QrCodeRef.current) {
-      html5QrCodeRef.current.clear();
-    }
+    if (html5QrCodeRef.current) html5QrCodeRef.current.clear();
 
     html5QrCodeRef.current = new Html5Qrcode("reader");
 
     html5QrCodeRef.current
-    .start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      (decodedText) => {
-        if (hasScannedRef.current) return;
+      .start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        async (decodedText) => {
+          if (hasScannedRef.current) return;
 
-        hasScannedRef.current = true;
+          hasScannedRef.current = true;
+          console.log("SCANNED:", decodedText);
 
-        console.log("SCANNED:", decodedText);
+          stopScanner(); // STOP immediately
+          await verifyTicket(decodedText);
 
-        stopScanner(); // ✅ STOP immediately
-        verifyTicket(decodedText);
-      },
-      (errorMessage) => {
-        console.log("Scan error:", errorMessage);
-      }
-    )
-    .then(() => setScannerRunning(true))
-    .catch((err) => console.error(err));
+          // 🔥 Quick Scan Queue auto-restart
+          if (quickQueueMode) {
+            setTimeout(() => {
+              if (!scannerRunning) startScanner();
+            }, 500); // small delay between scans
+          }
+        },
+        (errorMessage) => {
+          console.log("Scan error:", errorMessage);
+        }
+      )
+      .then(() => setScannerRunning(true))
+      .catch((err) => console.error(err));
   }
 
+  // STOP SCANNER
   function stopScanner() {
     if (!scannerRunning || !html5QrCodeRef.current) return;
 
-    html5QrCodeRef.current.stop()
+    html5QrCodeRef.current
+      .stop()
       .then(() => {
         setScannerRunning(false);
         html5QrCodeRef.current.clear();
       })
-      .catch(err => console.error(err));
+      .catch((err) => console.error(err));
   }
 
+  // VERIFY TICKET
   async function verifyTicket(scannedValue) {
     try {
       const token = localStorage.getItem("token");
@@ -79,19 +87,14 @@ function ScanTicket() {
       setStatus(data.status);
       setUserName(data.user);
 
-      // 🔊 play sounds
       if (data.status === "success") successAudio.current?.play();
       if (data.status === "error" || data.status === "warning") errorAudio.current?.play();
 
-      // 🔥 flash overlay
       if (data.status === "success") setFlash("success");
       else if (data.status === "error") setFlash("error");
       else if (data.status === "warning") setFlash("warning");
 
       setTimeout(() => setFlash(""), 500);
-
-      // ✅ DO NOT auto-restart scanner
-      // Staff will click "Next Scan" to reactivate
     } catch (err) {
       console.error("Scan error:", err);
       setStatus("error");
@@ -101,10 +104,9 @@ function ScanTicket() {
     }
   }
 
+  // CLEANUP ON UNMOUNT
   useEffect(() => {
-    return () => {
-      stopScanner();
-    };
+    return () => stopScanner();
   }, []);
 
   return (
@@ -119,19 +121,39 @@ function ScanTicket() {
             height: "100%",
             backgroundColor:
               flash === "success"
-              ? "rgba(0,255,0,0.3)"
-              : flash === "error"
-              ? "rgba(255,0,0,0.3)"
-              : "rgba(255,165,0,0.3)",
+                ? "rgba(0,255,0,0.3)"
+                : flash === "error"
+                ? "rgba(255,0,0,0.3)"
+                : "rgba(255,165,0,0.3)",
             zIndex: 9999,
             pointerEvents: "none",
           }}
         />
       )}
+
       <h2>Scan Ticket 🎟️</h2>
       <div id="reader" style={{ width: "300px", margin: "20px 0" }}></div>
-      <button onClick={startScanner} disabled={scannerRunning}>Turn Camera On</button>
-      <button onClick={stopScanner} disabled={!scannerRunning} style={{ marginLeft: "10px" }}>Turn Camera Off</button>
+
+      {/* CAMERA CONTROLS */}
+      <button onClick={startScanner} disabled={scannerRunning}>
+        Turn Camera On
+      </button>
+      <button
+        onClick={stopScanner}
+        disabled={!scannerRunning}
+        style={{ marginLeft: "10px" }}
+      >
+        Turn Camera Off
+      </button>
+
+      {/* QUICK SCAN TOGGLE */}
+      <button
+        onClick={() => setQuickQueueMode(!quickQueueMode)}
+        style={{ marginLeft: "10px" }}
+      >
+        {quickQueueMode ? "Quick Scan: ON 🔄" : "Quick Scan: OFF ⏸️"}
+      </button>
+
       <div style={{ marginTop: "20px" }}>
         {status === "success" && (
           <div style={{ color: "green" }}>
@@ -142,8 +164,8 @@ function ScanTicket() {
         {status === "error" && <p style={{ color: "red" }}>❌ Invalid Ticket</p>}
         {status === "warning" && <p style={{ color: "orange" }}>⚠️ Already Used</p>}
 
-        {/* 🔥 Next Scan button appears after each scan */}
-        {status && (
+        {/* NEXT SCAN BUTTON */}
+        {!quickQueueMode && status && (
           <button
             onClick={() => {
               setNextScanEnabled(false);
@@ -160,6 +182,7 @@ function ScanTicket() {
           </button>
         )}
       </div>
+
       <audio ref={successAudio} src="/sounds/success.mp3" />
       <audio ref={errorAudio} src="/sounds/error.mp3" />
     </div>
