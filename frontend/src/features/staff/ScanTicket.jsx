@@ -8,6 +8,8 @@ function ScanTicket() {
   const html5QrCodeRef = useRef(null);
 
   const hasScannedRef = useRef(false);
+  const successAudio = useRef(null);
+  const errorAudio = useRef(null);
 
   function startScanner() {
     if (scannerRunning) return;
@@ -72,8 +74,14 @@ function ScanTicket() {
       console.log("RESPONSE:", data);
 
       if (!res.ok) {
-        throw new Error(data.error || "Scan failed");
+        errorAudio.current?.play();
+        navigator.vibrate?.(300); // 🔥 vibration
+        throw new Error(data.detail || "Scan failed");
       }
+
+      // SUCCESS
+      successAudio.current?.play();
+      navigator.vibrate?.([100, 50, 100]);
 
       setStatus(data.status);
     } catch (err) {
@@ -99,6 +107,8 @@ function ScanTicket() {
         {status === "error" && <p style={{ color: "red" }}>❌ Invalid Ticket</p>}
         {status === "warning" && <p style={{ color: "orange" }}>⚠️ Already Used</p>}
       </div>
+      <audio ref={successAudio} src="/sounds/success.mp3" />
+      <audio ref={errorAudio} src="/sounds/error.mp3" />
     </div>
   );
 }
