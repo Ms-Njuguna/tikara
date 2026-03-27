@@ -47,7 +47,9 @@ function ScanTicket() {
           }
         },
         (errorMessage) => {
-          console.log("Scan error:", errorMessage);
+          if (!errorMessage.includes("NotFoundException")) {
+            console.warn("QR scan error:", errorMessage);
+          }
         }
       )
       .then(() => setScannerRunning(true))
