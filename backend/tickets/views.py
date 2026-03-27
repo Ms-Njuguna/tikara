@@ -64,10 +64,10 @@ def generate_qr(request, ticket_id):
 def verify_ticket(request):
     qr_code = request.data.get("qr_code")
 
-    if not request.user.is_organizer:
+    if request.user.role not in ["organizer", "staff"]:
         return Response({
-            "error": "Only organizers can scan tickets"
-        }, status=403)
+            "error": "Not authorized to scan tickets"
+    }, status=403)
 
     try:
         ticket = Ticket.objects.get(qr_code=qr_code)
