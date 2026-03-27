@@ -96,6 +96,10 @@ function ScanTicket() {
 
       setUserName(data.user);
       setStatus(data.status);
+
+      setTimeout(() => {
+        startScanner();
+      }, 3000);
     } catch (err) {
       console.error("Scan error:", err);
       setStatus("error");
