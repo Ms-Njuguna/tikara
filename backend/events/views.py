@@ -2,10 +2,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from .models import Event
+from .models import Event, EventStaff
 from .serializers import EventSerializer
 from tickets.models import TicketType
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # GET all events
 @api_view(['GET'])
@@ -62,3 +64,32 @@ def create_event(request):
         }, status=201)
 
     return Response(event_serializer.errors, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def assign_staff(request, event_id):
+    if request.user.role != "organizer":
+        return Response({"error": "Only organizers can assign staff"}, status=403)
+
+    try:
+        event = Event.objects.get(id=event_id, organizer=request.user)
+    except Event.DoesNotExist:
+        return Response({"error": "Event not found"}, status=404)
+
+    username = request.data.get("username")
+    permission = request.data.get("permission", "scan")
+    expires_at = request.data.get("expires_at")
+
+    try:
+        user = User.objects.get(username=username, role="staff")
+    except User.DoesNotExist:
+        return Response({"error": "Staff user not found"}, status=404)
+
+    EventStaff.objects.create(
+        user=user,
+        event=event,
+        permission=permission,
+        expires_at=expires_at
+    )
+
+    return Response({"message": "Staff assigned to event 🎉"})
