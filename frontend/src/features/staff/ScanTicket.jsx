@@ -7,20 +7,39 @@ function ScanTicket() {
   const [scannerRunning, setScannerRunning] = useState(false);
   const html5QrCodeRef = useRef(null);
 
+  const hasScannedRef = useRef(false);
+
   function startScanner() {
     if (scannerRunning) return;
+
+    hasScannedRef.current = false; // 🔥 reset lock
+
+    if (html5QrCodeRef.current) {
+      html5QrCodeRef.current.clear();
+    }
 
     html5QrCodeRef.current = new Html5Qrcode("reader");
 
     html5QrCodeRef.current
-      .start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => verifyTicket(decodedText),
-        (errorMessage) => {}
-      )
-      .then(() => setScannerRunning(true))
-      .catch((err) => console.error(err));
+    .start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      (decodedText) => {
+        if (hasScannedRef.current) return;
+
+        hasScannedRef.current = true;
+
+        console.log("SCANNED:", decodedText);
+
+        stopScanner(); // ✅ STOP immediately
+        verifyTicket(decodedText);
+      },
+      (errorMessage) => {
+        console.log("Scan error:", errorMessage);
+      }
+    )
+    .then(() => setScannerRunning(true))
+    .catch((err) => console.error(err));
   }
 
   function stopScanner() {
@@ -34,33 +53,40 @@ function ScanTicket() {
       .catch(err => console.error(err));
   }
 
-  function verifyTicket(qrCode) {
-    const token = localStorage.getItem("token");
+  async function verifyTicket(scannedValue) {
+    try {
+      const token = localStorage.getItem("token");
 
-    fetch("http://127.0.0.1:8000/api/tickets/scan/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ qr_code: qrCode }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        setStatus(data.status);
-
-        if (data.status === "success") {
-          // auto-show warning if scanned again in a few seconds
-          setTimeout(() => setStatus("warning"), 5000);
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        setStatus("error");
+      const res = await fetch("http://127.0.0.1:8000/api/tickets/scan/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          qr_code: scannedValue, // ✅ THIS MUST MATCH BACKEND FIELD
+        }),
       });
+
+      const data = await res.json();
+      console.log("RESPONSE:", data);
+
+      if (!res.ok) {
+        throw new Error(data.error || "Scan failed");
+      }
+
+      setStatus("success");
+    } catch (err) {
+      console.error("Scan error:", err);
+      setStatus("error");
+    }
   }
 
-  useEffect(() => stopScanner, []);
+  useEffect(() => {
+    return () => {
+      stopScanner();
+    };
+  }, []);
 
   return (
     <div>

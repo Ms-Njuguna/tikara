@@ -4,6 +4,7 @@ function CreateEvent() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
   const [eventType, setEventType] = useState("physical");
 
@@ -42,9 +43,14 @@ function CreateEvent() {
         });
 
         // 🔥 OPTIONAL VALIDATION (prevents dumb errors)
-        if (!title || !description || !date) {
+        if (!title || !description || !date || !endTime) {
             alert("Please fill all event fields 😤");
             return;
+        }
+
+        if (new Date(endTime) <= new Date(date)) {
+          alert("End time must be after start time ⏰");
+          return;
         }
 
         if (cleanedTickets.length === 0) {
@@ -64,6 +70,7 @@ function CreateEvent() {
                title,
                description,
                date: new Date(date).toISOString(), // 🔥 FIXED DATE
+               end_time: new Date(endTime).toISOString(),
                location,
                event_type: eventType,
                ticket_types: cleanedTickets
@@ -104,6 +111,7 @@ function CreateEvent() {
         <input placeholder="Title" onChange={e => setTitle(e.target.value)} />
         <input placeholder="Description" onChange={e => setDescription(e.target.value)} />
         <input type="datetime-local" onChange={e => setDate(e.target.value)} />
+        <input type="datetime-local" placeholder="End Time" onChange={e => setEndTime(e.target.value)} />
         <input placeholder="Location" onChange={e => setLocation(e.target.value)} />
 
         <select onChange={e => setEventType(e.target.value)}>
