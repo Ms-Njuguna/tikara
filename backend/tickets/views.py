@@ -66,12 +66,18 @@ def verify_ticket(request):
     qr_code = request.data.get("qr_code")
 
     if not qr_code:
-        return Response({"error": "QR code required"}, status=400)
+        return Response({"status": "error", "message": "QR code required"}, status=400)
 
     try:
         ticket = Ticket.objects.get(qr_code=qr_code)
+        # ❌ Event expired
+        if not ticket.event.is_active():
+            return Response({
+                "status": "error",
+                "message": "Event has ended ❌"
+            }, status=400)
 
-        # 🔐 STAFF ACCESS CONTROL
+        # 🔐 Staff access control
         if request.user.role == "staff":
             staff_access = EventStaff.objects.filter(
                 user=request.user,
@@ -84,20 +90,19 @@ def verify_ticket(request):
                     "message": "No access to this event ❌"
                 }, status=403)
 
-        # ❌ already used
-        if getattr(ticket, "is_used", False):
+        # ✅ First-time scan
+        if not ticket.is_used:
+            ticket.is_used = True
+            ticket.save()
             return Response({
-                "status": "warning",
-                "message": "Ticket already used ⚠️"
+                "status": "success",
+                "message": f"Welcome to {ticket.event.title} 🎉"
             })
 
-        # ✅ mark as used
-        ticket.is_used = True
-        ticket.save()
-
+        # ⚠️ Already used
         return Response({
-            "status": "success",
-            "message": f"Welcome to {ticket.event.title} 🎉"
+            "status": "warning",
+            "message": "Ticket already used ⚠️"
         })
 
     except Ticket.DoesNotExist:

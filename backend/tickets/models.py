@@ -39,13 +39,10 @@ class TicketType(models.Model):
 class Ticket(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tickets')
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
-
-    ticket_type = models.ForeignKey(TicketType, on_delete=models.CASCADE)
+    ticket_type = models.ForeignKey('TicketType', on_delete=models.CASCADE)
     qr_code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-
     is_paid = models.BooleanField(default=False)
     is_used = models.BooleanField(default=False)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
