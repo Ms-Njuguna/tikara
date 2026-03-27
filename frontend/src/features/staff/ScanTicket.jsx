@@ -75,7 +75,7 @@ function ScanTicket() {
         throw new Error(data.error || "Scan failed");
       }
 
-      setStatus("success");
+      setStatus(data.status);
     } catch (err) {
       console.error("Scan error:", err);
       setStatus("error");
