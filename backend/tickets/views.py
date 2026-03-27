@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Ticket, TicketType
 from .serializers import TicketSerializer
+from events.models import EventStaff
 
 
 @api_view(['POST'])
@@ -64,13 +65,21 @@ def generate_qr(request, ticket_id):
 def verify_ticket(request):
     qr_code = request.data.get("qr_code")
 
-    if request.user.role not in ["organizer", "staff"]:
-        return Response({
-            "error": "Not authorized to scan tickets"
-    }, status=403)
-
     try:
         ticket = Ticket.objects.get(qr_code=qr_code)
+
+        # 🔐 CHECK STAFF ACCESS
+        if request.user.role == "staff":
+            staff_record = EventStaff.objects.filter(
+                user=request.user,
+                event=ticket.event
+            ).first()
+
+            if not staff_record or not staff_record.is_active():
+                return Response({
+                    "status": "error",
+                    "message": "No access to this event ❌"
+                }, status=403)
 
         # ❌ already used
         if ticket.is_used:
@@ -79,7 +88,6 @@ def verify_ticket(request):
                 "message": "Ticket already used ⚠️"
             })
 
-        # ✅ mark as used
         ticket.is_used = True
         ticket.save()
 
