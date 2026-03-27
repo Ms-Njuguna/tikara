@@ -32,7 +32,11 @@ function Login() {
           setPassword("");
 
           // 🔥 REDIRECT
-          navigate("/");
+          if (data.user.role === "staff") {
+            navigate("/scan");
+          } else {
+            navigate("/");
+          }
 
           // 🔥 FORCE UI REFRESH (important for navbar)
           window.location.reload();
