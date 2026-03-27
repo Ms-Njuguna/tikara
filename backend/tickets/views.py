@@ -64,6 +64,7 @@ def generate_qr(request, ticket_id):
 @permission_classes([IsAuthenticated])
 def verify_ticket(request):
     qr_code = request.data.get("qr_code")
+    print("Received QR code:", qr_code)
 
     if not qr_code:
         return Response({"status": "error", "message": "QR code required"}, status=400)
