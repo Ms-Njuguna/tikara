@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  const navigate = useNavigate();
 
   function handleLogin(e) {
     e.preventDefault();
@@ -12,20 +15,29 @@ function Login() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        username,
-        password
-      })
+      body: JSON.stringify({ username, password })
     })
       .then(res => res.json())
       .then(data => {
         if (data.access) {
+          // 🔥 CLEAR OLD SESSION FIRST
+          localStorage.clear();
+
+          // 🔥 SET NEW SESSION
           localStorage.setItem("token", data.access);
           localStorage.setItem("user", JSON.stringify(data.user));
 
-          alert("Login successful 🎉");
+          // 🔥 RESET FORM
+          setUsername("");
+          setPassword("");
+
+          // 🔥 REDIRECT
+          navigate("/");
+
+          // 🔥 FORCE UI REFRESH (important for navbar)
+          window.location.reload();
         } else {
-          alert("Login failed 😢.. Try again later");
+          alert("Login failed 😢");
         }
       });
   }
