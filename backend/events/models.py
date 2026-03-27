@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
 
@@ -33,7 +34,7 @@ class EventStaff(models.Model):
     event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name="staff")
 
     permission = models.CharField(max_length=20, choices=PERMISSION_CHOICES, default='scan')
-
+    assigned_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

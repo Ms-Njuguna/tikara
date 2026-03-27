@@ -65,29 +65,33 @@ def generate_qr(request, ticket_id):
 def verify_ticket(request):
     qr_code = request.data.get("qr_code")
 
+    if not qr_code:
+        return Response({"error": "QR code required"}, status=400)
+
     try:
         ticket = Ticket.objects.get(qr_code=qr_code)
 
-        # 🔐 CHECK STAFF ACCESS
+        # 🔐 STAFF ACCESS CONTROL
         if request.user.role == "staff":
-            staff_record = EventStaff.objects.filter(
+            staff_access = EventStaff.objects.filter(
                 user=request.user,
                 event=ticket.event
             ).first()
 
-            if not staff_record or not staff_record.is_active():
+            if not staff_access or not staff_access.is_active():
                 return Response({
                     "status": "error",
                     "message": "No access to this event ❌"
                 }, status=403)
 
         # ❌ already used
-        if ticket.is_used:
+        if getattr(ticket, "is_used", False):
             return Response({
                 "status": "warning",
                 "message": "Ticket already used ⚠️"
             })
 
+        # ✅ mark as used
         ticket.is_used = True
         ticket.save()
 
