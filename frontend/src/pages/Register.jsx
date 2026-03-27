@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isOrganizer, setIsOrganizer] = useState(false);
+
+  const navigate = useNavigate();
 
   function handleRegister(e) {
     e.preventDefault();
@@ -23,10 +26,18 @@ function Register() {
     })
       .then(res => res.json())
       .then(data => {
-        console.log(data); // 👈 IMPORTANT
-        alert("User registered successfully 🎉");
+        alert("User registered 🎉");
+
+        // 🔥 RESET FORM
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        setIsOrganizer(false);
+
+        // 🔥 REDIRECT TO LOGIN
+        navigate("/login");
       });
-    }
+  }
 
   return (
     <div>
@@ -34,26 +45,26 @@ function Register() {
 
       <form onSubmit={handleRegister}>
         <input
-  type="text"
-  placeholder="Username"
-  value={username}
-  onChange={(e) => setUsername(e.target.value)}
-/>
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
 
-<input
-  type="email"
-  placeholder="Email"
-  value={email}
-  onChange={(e) => setEmail(e.target.value)}
-/>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-<input
-  type="password"
-  placeholder="Password"
-  value={password}
-  onChange={(e) => setPassword(e.target.value)}
-/>
-        {/* NEW */}
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
         <label>
           <input
             type="checkbox"
