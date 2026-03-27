@@ -4,18 +4,27 @@ from django.contrib.auth.password_validation import validate_password
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    is_organizer = serializers.BooleanField(default=False)
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password]
+    )
+
+    # 🔥 NEW FIELD
+    role = serializers.ChoiceField(
+        choices=['user', 'organizer'],
+        default='user'
+    )
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'is_organizer')
+        fields = ('id', 'username', 'email', 'password', 'role')
 
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
-            is_organizer=validated_data.get('is_organizer', False)
+            role=validated_data.get('role', 'user')
         )
         return user
