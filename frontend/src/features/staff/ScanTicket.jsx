@@ -13,6 +13,8 @@ function ScanTicket() {
   const errorAudio = useRef(null);
 
   const [flash, setFlash] = useState("");
+  const [nextScanEnabled, setNextScanEnabled] = useState(true);
+
 
   function startScanner() {
     if (scannerRunning) return;
@@ -88,13 +90,8 @@ function ScanTicket() {
 
       setTimeout(() => setFlash(""), 500);
 
-      // 🔥 Only restart scanner if ticket is NOT valid
-      if (data.status !== "success") {
-        setTimeout(() => {
-          hasScannedRef.current = false; // unlock
-          startScanner();
-        }, 3000);
-      }
+      // ✅ DO NOT auto-restart scanner
+      // Staff will click "Next Scan" to reactivate
     } catch (err) {
       console.error("Scan error:", err);
       setStatus("error");
@@ -144,6 +141,24 @@ function ScanTicket() {
         )}
         {status === "error" && <p style={{ color: "red" }}>❌ Invalid Ticket</p>}
         {status === "warning" && <p style={{ color: "orange" }}>⚠️ Already Used</p>}
+
+        {/* 🔥 Next Scan button appears after each scan */}
+        {status && (
+          <button
+            onClick={() => {
+              setNextScanEnabled(false);
+              setStatus("");
+              setUserName("");
+              hasScannedRef.current = false;
+              startScanner();
+              setTimeout(() => setNextScanEnabled(true), 2000);
+            }}
+            style={{ marginTop: "10px" }}
+            disabled={!nextScanEnabled}
+          >
+            Next Scan 🔄
+          </button>
+        )}
       </div>
       <audio ref={successAudio} src="/sounds/success.mp3" />
       <audio ref={errorAudio} src="/sounds/error.mp3" />
