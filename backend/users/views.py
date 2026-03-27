@@ -34,7 +34,7 @@ def login_user(request):
             "user": {
                 "id": user.id,
                 "username": user.username,
-                "is_organizer": user.is_organizer
+                "role": user.role
             }
         })
 
